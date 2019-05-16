@@ -12,6 +12,13 @@ spring:
     servlet:
       content-type: text/html
     cache: false #开发时关闭缓存,不然没法看到实时页面
+  mail:
+    host: 
+    username: wedjg2019@163.com
+    password: qq8835761
+    default-encoding: UTF-8
+    fromMail:
+        addr: wedjg2019@163.com
 
 mybatis:
   mapper-locations:
