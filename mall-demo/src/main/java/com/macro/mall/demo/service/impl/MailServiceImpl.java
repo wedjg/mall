@@ -36,7 +36,7 @@ public class MailServiceImpl implements MailService {
     @Override
     public void sendSimpleMail(String to, String subject, String content) {
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(from);
+        message.setFrom(this.from);
         message.setTo(to);
         message.setSubject(subject);
         message.setText(content);
@@ -59,16 +59,7 @@ public class MailServiceImpl implements MailService {
 	 */
 	@Override
 	public void sendHtmlMail(String to, String subject, String content) {
-		MimeMessage message = mailSender.createMimeMessage();
-
-		try {
-			MimeMessageHelper helper = this.getSeniorMessage(message, to, subject, content);
-
-			mailSender.send(message);
-			logger.info("html邮件已经发送。");
-		} catch (MessagingException e) {
-			logger.error("发送html邮件时发生异常！", e);
-		}
+		sendSeniorMessage(String to, String subject, String content, null, null, null);
 	}
 
 	/**
@@ -80,20 +71,7 @@ public class MailServiceImpl implements MailService {
 	 */
 	@Override
 	public void sendAttachmentsMail(String to, String subject, String content, String filePath){
-		MimeMessage message = mailSender.createMimeMessage();
-
-		try {
-			MimeMessageHelper helper = this.getSeniorMessage(message, to, subject, content);
-
-			FileSystemResource file = new FileSystemResource(new File(filePath));
-			String fileName = filePath.substring(filePath.lastIndexOf(File.separator));
-			helper.addAttachment(fileName, file);
-
-			mailSender.send(message);
-			logger.info("带附件的邮件已发送");
-		} catch (MessagingException e) {
-			logger.error("发送带附件邮件时发生异常！", e);
-		}
+		sendSeniorMessage(String to, String subject, String content, filePath, null, null);
 	}
 
 	/**
@@ -106,19 +84,7 @@ public class MailServiceImpl implements MailService {
 	 */
 	@Override
 	public void sendInlineResourceMail(String to, String subject, String content, String rscPath, String rscId){
-		MimeMessage message = mailSender.createMimeMessage();
-
-		try {
-			MimeMessageHelper helper = this.getSeniorMessage(message, to, subject, content);
-
-			FileSystemResource res = new FileSystemResource(new File(rscPath));
-			helper.addInline(rscId, res);
-
-			mailSender.send(message);
-			logger.info("带有静态资源的邮件已发送");
-		} catch (MessagingException e) {
-			logger.error("发送带有静态资源的邮件时发生异常", e);
-		}
+		sendSeniorMessage(String to, String subject, String content, null, rscPath, rscId);
 	}
 
 	/**
@@ -138,6 +104,34 @@ public class MailServiceImpl implements MailService {
 		helper.setSubject(subject);
 		helper.setText(content, true);
 		return helper;
+	}
+	
+	/**
+	 *	发送高级邮件
+	 */
+	private void sendSeniorMessage(String to, String subject, String content, String filePath, String rscPath, String rscId) {
+		MimeMessage message = mailSender.createMimeMessage();
+		try {
+			MimeMessageHelper helper = this.getSeniorMessage(message, to, subject, content);
+			
+			// 发送带附件的邮件
+			if(filePath != null){
+				FileSystemResource file = new FileSystemResource(new File(filePath));
+				String fileName = filePath.substring(filePath.lastIndexOf(File.separator));
+				helper.addAttachment(fileName, file);
+			}
+			
+			//发送带有静态资源的邮件
+			if(rscPath != null || rscId != null) {
+				FileSystemResource res = new FileSystemResource(new File(rscPath));
+				helper.addInline(rscId, res);
+			}
+
+			mailSender.send(message);
+			logger.info(new BufferString("发送给").append(to).append("的邮件：").append(subject).append("发送成功！"));
+		} catch (MessagingException e) {
+			logger.error(new BufferString("发送给").append(to).append("的邮件：").append(subject).append("发送失败！"), e);
+		}
 	}
 	
 }
