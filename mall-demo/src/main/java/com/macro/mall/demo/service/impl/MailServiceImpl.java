@@ -34,12 +34,12 @@ public class MailServiceImpl implements MailService {
 	 *	发送简单邮件
 	 */
     @Override
-    public void sendSimpleMail(String to, String subject, String content) {
+    public void sendSimpleMail(MailDto mail) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(this.from);
-        message.setTo(to);
-        message.setSubject(subject);
-        message.setText(content);
+        message.setTo(mail.getTo());
+        message.setSubject(mail.getSubject());
+        message.setText(mail.getContent());
 
         try {
             mailSender.send(message);
@@ -58,8 +58,8 @@ public class MailServiceImpl implements MailService {
 	 * @param content	邮件正文（html）
 	 */
 	@Override
-	public void sendHtmlMail(String to, String subject, String content) {
-		sendSeniorMessage(String to, String subject, String content, null, null, null);
+	public void sendHtmlMail(MailDto mail) {
+		sendSeniorMessage(MailDto mail);
 	}
 
 	/**
@@ -70,8 +70,8 @@ public class MailServiceImpl implements MailService {
 	 * @param filePath	附件路径
 	 */
 	@Override
-	public void sendAttachmentsMail(String to, String subject, String content, String filePath){
-		sendSeniorMessage(String to, String subject, String content, filePath, null, null);
+	public void sendAttachmentsMail(MailDto mail){
+		sendSeniorMessage(MailDto mail);
 	}
 
 	/**
@@ -83,8 +83,8 @@ public class MailServiceImpl implements MailService {
 	 * @param rscId
 	 */
 	@Override
-	public void sendInlineResourceMail(String to, String subject, String content, String rscPath, String rscId){
-		sendSeniorMessage(String to, String subject, String content, null, rscPath, rscId);
+	public void sendInlineResourceMail(MailDto mail){
+		sendSeniorMessage(MailDto mail);
 	}
 
 	/**
@@ -96,41 +96,44 @@ public class MailServiceImpl implements MailService {
 	 * @return
 	 * @throws MessagingException
 	 */
-	private MimeMessageHelper getSeniorMessage(MimeMessage message, String to, String subject, String content)
+	private MimeMessageHelper getSeniorMessage(MimeMessage message, MailDto mail)
 			throws MessagingException {
 		MimeMessageHelper helper = new MimeMessageHelper(message, true);
 		helper.setFrom(this.from);
-		helper.setTo(to);
-		helper.setSubject(subject);
-		helper.setText(content, true);
+		helper.setTo(mail.getTo());
+		helper.setSubject(mail.getSubject());
+		helper.setText(mail.getContent(), true);
 		return helper;
 	}
 	
 	/**
 	 *	发送高级邮件
 	 */
-	private void sendSeniorMessage(String to, String subject, String content, String filePath, String rscPath, String rscId) {
+	private void sendSeniorMessage(MailDto mail) {
 		MimeMessage message = mailSender.createMimeMessage();
 		try {
-			MimeMessageHelper helper = this.getSeniorMessage(message, to, subject, content);
+			MimeMessageHelper helper = this.getSeniorMessage(message, mail);
 			
 			// 发送带附件的邮件
-			if(filePath != null){
+			if(mail.getFilePath() != null){
+				String filePath = mail.getFilePath();
 				FileSystemResource file = new FileSystemResource(new File(filePath));
 				String fileName = filePath.substring(filePath.lastIndexOf(File.separator));
 				helper.addAttachment(fileName, file);
 			}
 			
 			//发送带有静态资源的邮件
-			if(rscPath != null || rscId != null) {
+			if(mail.getRscPath() != null || mail.getRscId() != null) {
+				String rscPath = mail.getRscPath();
+				String rscId = mail.getRscId()
 				FileSystemResource res = new FileSystemResource(new File(rscPath));
 				helper.addInline(rscId, res);
 			}
 
 			mailSender.send(message);
-			logger.info(new BufferString("发送给").append(to).append("的邮件：").append(subject).append("发送成功！"));
+			logger.info(new BufferString("发送的邮件：").append(mail.toString()).append("发送成功！"));
 		} catch (MessagingException e) {
-			logger.error(new BufferString("发送给").append(to).append("的邮件：").append(subject).append("发送失败！"), e);
+			logger.error(new BufferString("发送的邮件：").append(mail.toString()).append("发送失败！"), e);
 		}
 	}
 	
