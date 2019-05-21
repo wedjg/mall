@@ -6,20 +6,8 @@
  * @since 2019-05-21
  */
  @Data
- public class MailDto {
+ public class MailDto extends MessageDto {
  
-	/**
-	 * 收件人
-	 */
-	private String to;
-	/**
-	 * 主题
-	 */
-	private String subject;
-	/**
-	 * 正文
-	 */
-	private String content;
 	/**
 	 * 附件路径
 	 */

@@ -132,6 +132,8 @@ public class MailServiceImpl implements MailService {
 
 			mailSender.send(message);
 			logger.info(new BufferString("发送的邮件：").append(mail.toString()).append("发送成功！"));
+		} catch (AuthenticationFailedException e) {
+			logger.error("身份验证失败：", e);
 		} catch (MessagingException e) {
 			logger.error(new BufferString("发送的邮件：").append(mail.toString()).append("发送失败！"), e);
 		}
