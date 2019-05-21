@@ -40,7 +40,7 @@ public class MailServiceImpl implements MailService {
         message.setTo(mail.getTo());
         message.setSubject(mail.getSubject());
         message.setText(mail.getContent());
-
+ 
         try {
             mailSender.send(message);
             logger.info("简单邮件已经发送。");
